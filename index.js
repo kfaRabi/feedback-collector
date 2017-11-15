@@ -1,7 +1,10 @@
-const express = require('express');
+const express = require("express");
+
 const app = express();
 
-app.get('/', (req, res) => {
+require('./routes/oauth_routes')(app);
+
+app.get("/", (req, res) => {
   res.send("hello there");
 });
 
