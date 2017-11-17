@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 // *** otherwise must use express-session. it will hold a session_id and lookup in some session_store that will have all the data 
 const cookieSession = require('cookie-session');
 const passport = require('passport');
+const bodyParser = require('body-parser');
 
 // load local modules
 const keys = require('./config/keys');
@@ -17,6 +18,9 @@ require('./services/passport_services');
 const app = express();
 
 // middlewares
+
+// body perser to parse the request payload as a json boject named body
+app.use(bodyParser.json());
 
 // cookie-session.
 // http request comes in 'req' object
@@ -40,6 +44,22 @@ app.use(passport.session()); /*tell app to use passport session. and that's why 
 
 // import routers
 require('./routes/auth_routes')(app);
+require('./routes/billing_routes')(app);
+
+if(process.env.NODE_ENV === 'production') {
+  // IN production, when we don't know any routes,
+
+  // first check if the file exists inside 'client/build'
+  // if yes, return the file as a respons
+  app.use(express.static('client/build'));
+
+  // otherwise, just return the 'client/build/index.html'
+  // (out index.html has depedency on bundle.js, so entire front-end boots up)
+  const path = require('path');
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve( __dirname, 'client', 'build', 'index.html'));
+  });
+}
 
 // connect to mongoDB and configure
 mongoose.connect(keys.mongoURI, () => {
